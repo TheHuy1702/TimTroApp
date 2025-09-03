@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../repositories/auth_repository.dart';
+
 // Để chạy riêng màn hình này, bạn có thể dùng hàm main sau:
 void main() {
   runApp(MaterialApp(
@@ -185,6 +187,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      enableIMEPersonalizedLearning: true,
+      textInputAction: TextInputAction.done,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.grey[600]),
@@ -196,6 +200,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+
   Widget _buildPasswordField({
     required TextEditingController controller,
     required String label,
@@ -206,6 +211,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return TextFormField(
       controller: controller,
       obscureText: !isVisible,
+      enableIMEPersonalizedLearning: true,
+      textInputAction: TextInputAction.done,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(Icons.lock_outline),
@@ -283,24 +290,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildRegisterButton() {
     return ElevatedButton(
-      onPressed: () {
+      onPressed: () async {
         if (_formKey.currentState!.validate()) {
           if (!_agreedToTerms) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Vui lòng đồng ý với các điều khoản của chúng tôi để tiếp tục.'),
-                backgroundColor: Colors.red,
-              ),
+              const SnackBar(content: Text('Vui lòng đồng ý với các điều khoản')),
             );
             return;
           }
-          // TODO: Gọi API đăng ký tài khoản với Firebase
-          print('Đăng ký thành công (giả lập)');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Đang tạo tài khoản...')),
-          );
+
+          try {
+            final authRepo = AuthRepository();
+            final user = await authRepo.registerWithEmailAndPassword(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            );
+
+            if (user != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Đăng ký thành công, vui lòng kiểm tra email để xác thực.')),
+              );
+              // Sau 3 giây thì chuyển sang màn hình đăng nhập
+              Future.delayed(const Duration(seconds: 1), () {
+                Navigator.of(context).pop(); // quay về màn hình login
+                // hoặc nếu bạn có LoginScreen thì:
+                // Navigator.pushReplacement(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => const LoginScreen()),
+                // );
+              });
+            }
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(e.toString())),
+            );
+          }
         }
       },
+
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
@@ -311,6 +338,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         textStyle: GoogleFonts.beVietnamPro(fontSize: 16, fontWeight: FontWeight.bold),
       ),
       child: const Text('ĐĂNG KÝ'),
+
     );
   }
 

@@ -5,15 +5,14 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 
-void main() async { // Thêm async
-  // Đảm bảo Flutter sẵn sàng
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Khởi tạo Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

@@ -43,6 +43,27 @@ class AuthRepository {
       throw Exception('Đã xảy ra lỗi không xác định. Vui lòng thử lại.');
     }
   }
+  // đăng ký
+  Future<User?> registerWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Sau khi đăng ký có thể gửi mail xác thực
+      await userCredential.user?.sendEmailVerification();
+
+      return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
+
 
 // TODO: Thêm các hàm khác ở đây, ví dụ:
 // Future<void> signOut() async { ... }
